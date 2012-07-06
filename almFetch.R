@@ -39,23 +39,22 @@ my.data <- data.frame()
 
 # Loop through all provided DOIs
 for (doi in plos.dois) {
-  # Calling the PLoS ALM API
-  response <- almplosallviews(doi, citations = TRUE, history = FALSE, downform='json', sleep=5, key = plos.api_key)
+  # Calling the PLoS ALM API. Waiting 10 sec before calling the API again.
+  response <- almplosallviews(doi, citations = TRUE, history = FALSE, downform='json', sleep=10, key = plos.api_key)
 
   # Parse journal name from DOI
   journal.key <- substr(doi,17,20)
   journal.name <- plos.journals[[journal.key]]
       
   # Parse information about article
-  if (is.null(response$article$pub_med)) article.pmid <- NA else article.pmid <- response$article$pub_med
+  article.pmid <- if (is.null(response$article$pub_med)) NA else response$article$pub_med
   article.title <- response$article$title
   article.published <- as.Date(response$article$published)
   article.age_in_days <- Sys.Date() - article.published
   article <- c(list(journal=journal.name), list(doi=doi), list(pmid=article.pmid), list(title=article.title), list(published=article.published), list(age_in_days=article.age_in_days))
-
-  # Add citation_counts from sources. We will not use all sources.
   lst <- list()
   
+  # Add citation_counts from sources. We will not use all sources, and need special parsing for some sources.
   for (source in response$article$source) {
     if (source$source == "CiteULike" || 
         source$source == "CrossRef" ||
@@ -70,7 +69,10 @@ for (doi in plos.dois) {
     } else if (source$source == "Facebook") {
       lst[source$source] <- source$count
     } else if (source$source == "Mendeley") {
-      lst[source$source] <- source$count
+      citation <- source$citations[[1]]$citation
+      readers <- citation$stats$readers
+      groups <- if(is.null(citation$groups)) 0 else length(citation$groups)
+      lst[source$source] <- readers + groups
     } else {
       next
     }

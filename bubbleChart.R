@@ -13,6 +13,6 @@ plos.ylab <- "CrossRef Citations"
 
 # Plot the chart
 opar <- par(mai=c(1.5,1.5,1.5,1.5), fg="black", cex.main=2, col.main="#1d479b", xaxs="i")
-symbols(alm$age_in_days / 365.25 * 12, alm$crossref, circles=radius, inches=0.1, fg="black", bg="#548aee", xlab=plos.xlab, ylab=plos.ylab, main=paste("Article Level Metrics for", plos.title),xaxt="s")
+symbols(alm$age_in_days / 365.25 * 12, alm$crossref, circles=radius, inches=0.1, fg="black", bg="#548aee", xlab=plos.xlab, ylab=plos.ylab, main=paste("Article Level Metrics Summary for", plos.title),xaxt="s")
 #text(alm$age_in_days / 365.25 * 12, alm$crossref, alm$doi, pos=3, offset=0.75, cex=0.5)
 par(opar)
