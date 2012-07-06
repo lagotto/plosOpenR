@@ -1,35 +1,20 @@
 # Fetch Article Level Metrics from PLoS
-# Version 1.1, 07/05/12
+# Version 1.2, 07/06/12
 # by Martin Fenner, mf@martinfenner.org
-
-suppressPackageStartupMessages(library(googleVis))
 
 # Load required libraries
 library(rplos)
 
 # Load required information
 plos.api_key <- c("K2HOqorgUIiuc7e")
-plos.sources <- c("CiteULike",
-                  "Connotea", 
-                  "CrossRef",
-                  "Nature",
-                  "Postgenomic", 
-                  "PubMed Central",
-                  "Scopus",
-                  "Counter",
-                  "Research Blogging",
-                  "Biod",
-                  "PubMed Central Usage Stats",
-                  "Facebook",
-                  "Mendeley",
-                  "Twitter")
 plos.journals <- list(pbio="PLoS Biology", 
                       pmed="PLoS Medicine",
                       pone="PLoS ONE",
                       ppat="PLoS Pathogens",
                       pcbi="PLoS Computational Biology",
                       pntd="PLoS Neglected Tropical Diseases",
-                      pgen="PLoS Genetics")
+                      pgen="PLoS Genetics",
+                      pctr="PLoS Clinical Trials")
 
 # Load CSV file with PLoS DOIs
 input <- read.csv("alm_in.csv")
@@ -63,14 +48,22 @@ for (doi in plos.dois) {
         source$source == "Twitter") {
       lst[source$source] <- source$count
     } else if (source$source == "Counter") {
-      lst[source$source] <- source$count
+      views <- source$citations[[1]]$citation$views
+      pdf_views <- sum(as.numeric(sapply(views, `[[`, "pdf_views")))
+      html_views <- sum(as.numeric(sapply(views, `[[`, "html_views")))
+      xml_views <- sum(as.numeric(sapply(views, `[[`, "xml_views")))
+      lst[source$source] <- pdf_views + html_views + xml_views
     } else if (source$source == "PubMed Central Usage Stats") {
-      lst[source$source] <- source$count
+      views <- source$citations[[1]]$citation$views
+      pdf <- sum(as.numeric(sapply(views, `[[`, "pdf")))
+      html <- sum(as.numeric(sapply(views, `[[`, "full-text")))
+      lst[source$source] <- pdf + html
     } else if (source$source == "Facebook") {
-      lst[source$source] <- source$count
+      #total_count <- sum(as.numeric(sapply(source$citations, `[[`, "total_count")))
+      #lst[source$source] <- total_count
     } else if (source$source == "Mendeley") {
       citation <- source$citations[[1]]$citation
-      readers <- citation$stats$readers
+      readers <- if(is.null(citation$stats)) 0 else citation$stats$readers
       groups <- if(is.null(citation$groups)) 0 else length(citation$groups)
       lst[source$source] <- readers + groups
     } else {

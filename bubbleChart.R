@@ -4,15 +4,19 @@
 
 # Load data
 alm <- read.csv("alm_out.csv", header=TRUE)
-radius <- sqrt( alm$citeulike / pi )
+x <- alm$age_in_days
+y <- alm$Counter + alm$PubMed.Central.Usage.Stats
+z <- sqrt( alm$CrossRef / pi )
 
 # Labels
-plos.title <- "John P. A. Ioannidis"
-plos.xlab <- "Months since Publication"
-plos.ylab <- "CrossRef Citations"
+main <- "Médicins sans Frontières\n"
+today <- format(Sys.Date(), "%B %e, %Y")
+sub <- sprintf("PLoS Article Level Metrics Report (%s)", today)
+plos.xlab <- "Months"
+plos.ylab <- "Cumulative Views"
 
 # Plot the chart
-opar <- par(mai=c(1.5,1.5,1.5,1.5), fg="black", cex.main=2, col.main="#1d479b", xaxs="i")
-symbols(alm$age_in_days / 365.25 * 12, alm$crossref, circles=radius, inches=0.1, fg="black", bg="#548aee", xlab=plos.xlab, ylab=plos.ylab, main=paste("Article Level Metrics Summary for", plos.title),xaxt="s")
-#text(alm$age_in_days / 365.25 * 12, alm$crossref, alm$doi, pos=3, offset=0.75, cex=0.5)
+opar <- par(mai=c(1.5,1.5,1.5,1.5), mgp=c(3.5,1,0), fg="grey", cex.main=2, cex.sub=1.25, cex.lab=1.5, col="white", col.main="#1d479b", col.sub="#1d479b", col.lab="#1d479b", xaxs="i", yaxs="i")
+symbols(x / 365.25 * 12, y, circles=z, inches=0.3, bg="#548aee", main=main, xlab=plos.xlab, ylab=plos.ylab, las=1)
+#text(x / 365.25 * 12, views, alm$doi, pos=3, offset=0.75, cex=0.5)
 par(opar)
