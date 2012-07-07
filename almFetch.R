@@ -25,7 +25,7 @@ my.data <- data.frame()
 # Loop through all provided DOIs
 for (doi in plos.dois) {
   # Calling the PLoS ALM API. Waiting 10 sec before calling the API again.
-  response <- almplosallviews(doi, citations = TRUE, history = FALSE, downform='json', sleep=10, key = plos.api_key)
+  response <- almplosallviews(doi, citations = TRUE, history = FALSE, downform='json', sleep=0, key = plos.api_key)
 
   # Parse journal name from DOI
   journal.key <- substr(doi,17,20)
@@ -41,31 +41,35 @@ for (doi in plos.dois) {
   
   # Add citation_counts from sources. We will not use all sources, and need special parsing for some sources.
   for (source in response$article$source) {
-    if (source$source == "CiteULike" || 
-        source$source == "CrossRef" ||
-        source$source == "PubMed Central" ||
-        source$source == "Scopus" ||
-        source$source == "Twitter") {
-      lst[source$source] <- source$count
-    } else if (source$source == "Counter") {
+    source.name <- tolower(source$source)
+    if (source.name == "citeulike" || 
+        source.name == "crossref" ||
+        source.name == "scopus" ||
+        source.name == "twitter") {
+      lst[source.name] <- source$count
+    } else if (source$source == "PubMed Central") {
+      lst["pubmed"] <- source$count
+    } else if (source.name == "counter") {
       views <- source$citations[[1]]$citation$views
       pdf_views <- sum(as.numeric(sapply(views, `[[`, "pdf_views")))
       html_views <- sum(as.numeric(sapply(views, `[[`, "html_views")))
       xml_views <- sum(as.numeric(sapply(views, `[[`, "xml_views")))
-      lst[source$source] <- pdf_views + html_views + xml_views
-    } else if (source$source == "PubMed Central Usage Stats") {
+      lst[source.name] <- pdf_views + html_views + xml_views
+    } else if (source$source== "PubMed Central Usage Stats") {
       views <- source$citations[[1]]$citation$views
       pdf <- sum(as.numeric(sapply(views, `[[`, "pdf")))
       html <- sum(as.numeric(sapply(views, `[[`, "full-text")))
-      lst[source$source] <- pdf + html
-    } else if (source$source == "Facebook") {
-      #total_count <- sum(as.numeric(sapply(source$citations, `[[`, "total_count")))
-      #lst[source$source] <- total_count
-    } else if (source$source == "Mendeley") {
+      lst["pmc"] <- pdf + html
+    } else if (source.name == "facebook") {
+      doi_count <- source$citations[[1]]$citation$total_count
+      fulltext_count <- source$citations[[2]]$citation$total_count
+      citation <- unlist(source$citations, recursive=FALSE)
+      lst[source.name] <- doi_count + fulltext_count
+    } else if (source.name == "mendeley") {
       citation <- source$citations[[1]]$citation
       readers <- if(is.null(citation$stats)) 0 else citation$stats$readers
       groups <- if(is.null(citation$groups)) 0 else length(citation$groups)
-      lst[source$source] <- readers + groups
+      lst[source.name] <- readers + groups
     } else {
       next
     }
