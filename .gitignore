@@ -2,8 +2,6 @@
 .Rproj.user
 .Rhistory
 .RData
-data-articles/*
-data-alm/*
-data-charts/*
 *.csv
+*/*.csv
 plosOpenR.Rproj
