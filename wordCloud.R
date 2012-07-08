@@ -25,4 +25,4 @@ pal <- brewer.pal(9, "Blues")
 pal <- pal[-(1:2)]
 
 # Plot the chart
-wordcloud(d$word,d$freq, scale=c(8,.3),min.freq=5,max.words=150, random.order=FALSE, rot.per=.2, colors=pal)
+wordcloud(d$word,d$freq, scale=c(3,.1),min.freq=2,max.words=250, random.order=FALSE, rot.per=.2, colors=pal)

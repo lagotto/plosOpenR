@@ -19,7 +19,7 @@ label_color <- "#304345"
   
 
 # Plot the chart
-opar <- par(mai=c(1.5,1.5,1.5,1.5), mgp=c(4.5,0.75,0), fg="black", cex.main=2, cex.sub=1.25, cex.lab=1.5, col="white", col.main=label_color, col.lab=label_color, xaxs="i", yaxs="i")
+opar <- par(mai=c(1.5,1.5,1.5,1.5), mgp=c(3.5,0.75,0), fg="black", cex.main=2, cex.sub=1.25, cex.lab=1.5, col="white", col.main=label_color, col.lab=label_color, xaxs="i", yaxs="i")
 symbols(x / 365.25 * 12, y, circles=z, inches=0.25, bg=main_color, main=main, xlab=plos.xlab, ylab=plos.ylab, las=1)
 #text(x / 365.25 * 12, views, alm$doi, pos=3, offset=0.75, cex=0.5)
 par(opar)

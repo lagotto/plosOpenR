@@ -22,9 +22,9 @@ today <- format(Sys.Date(), "%Y-%m-%d")
 # The PLoS Search API uses Lucene syntax, more information at
 # <http://lucene.apache.org/core/3_6_0/queryparsersyntax.html>
 # Use doc_type:full (undocumented) to not return composite DOIs?
-plos.search_field <- c("financial_disclosure")
-plos.search_string <- c("fp7")
-plos.start_date <- c("2003-08-18")
+plos.search_field <- c("title")
+plos.search_string <- c("dna barcoding")
+plos.start_date <- c("2011-07-07")
 plos.end_date <- today
 plos.article_type <- NA
 plos.subject_category <- NA

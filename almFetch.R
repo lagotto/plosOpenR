@@ -8,33 +8,34 @@ library(rplos)
 # Load PLoS API key from .rProfile file
 plos.api_key <- getOption("PlosApiKey")
 
-# Load required information
-plos.journals <- list(pbio="PLoS Biology", 
-                      pmed="PLoS Medicine",
-                      pone="PLoS ONE",
-                      ppat="PLoS Pathogens",
-                      pcbi="PLoS Computational Biology",
-                      pntd="PLoS Neglected Tropical Diseases",
-                      pgen="PLoS Genetics",
-                      pctr="PLoS Clinical Trials")
-
 # Load CSV file with PLoS DOIs
-input <- read.csv("alm_in.csv")
+articles <- read.csv("alm_in.csv")
 
-plos.dois <- input$doi
 my.data <- data.frame()
 
 # Loop through all provided DOIs
-for (doi in plos.dois) {
+for (i in 1:nrow(articles))  {
+  article <- articles[i,]
   # Calling the PLoS ALM API. Waiting 10 sec before calling the API again.
-  response <- almplosallviews(doi, citations = TRUE, history = FALSE, downform='json', sleep=0, key = plos.api_key)
+  response <- almplosallviews(article$doi, citations = TRUE, history = FALSE, downform='json', sleep=0, key = plos.api_key)
 
   # Parse journal name from DOI
-  if (is.null(input.journal)) {
-    journal.key <- substr(doi,17,20)
+  if (!is.null(article$journal)) {
+    journal.name <- article$journal
+  } else {
+    plos.journals <- list(pbio="PLoS Biology", 
+                          pmed="PLoS Medicine",
+                          pone="PLoS ONE",
+                          ppat="PLoS Pathogens",
+                          pcbi="PLoS Computational Biology",
+                          pntd="PLoS Neglected Tropical Diseases",
+                          pgen="PLoS Genetics",
+                          pctr="PLoS Clinical Trials")
+    
+    journal.key <- substr(article$doi,17,20)
     journal.name <- plos.journals[[journal.key]]
-  }
-      
+  } 
+  
   # Parse information about article, clean up article title when importing
   article.pmid <- if (is.null(response$article$pub_med)) NA else response$article$pub_med
   article.title <- gsub("<italic>", "", response$article$title)
@@ -42,7 +43,7 @@ for (doi in plos.dois) {
   #article.title <- gsub("\n", "", article.title, fixed=TRUE)
   article.published <- as.Date(response$article$published)
   article.age_in_days <- Sys.Date() - article.published
-  article <- c(list(journal=journal.name), list(doi=doi), list(pmid=article.pmid), list(title=article.title), list(published=article.published), list(age_in_days=article.age_in_days))
+  article <- c(list(journal=journal.name), list(doi=article$doi), list(pmid=article.pmid), list(title=article.title), list(published=article.published), list(age_in_days=article.age_in_days))
   lst <- list()
   
   # Add citation_counts from sources. We will not use all sources, and need special parsing for some sources.
