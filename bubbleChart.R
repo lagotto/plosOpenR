@@ -1,5 +1,5 @@
 # Bubble chart from PLoS Article Level Metrics data
-# Version 1.0, 07/05/12
+# Version 1.1, 07/07/12
 # by Martin Fenner, mf@martinfenner.org
 
 # Load data
@@ -9,7 +9,7 @@ y <- alm$counter + alm$pmc
 z <- sqrt( alm$crossref / pi )
 
 # Labels
-main <- "2009 PLoS Biology Articles"
+main <- "Seventh Framework Programme (FP7)"
 today <- format(Sys.Date(), "%B %e, %Y")
 sub <- sprintf("PLoS Article Level Metrics Report (%s)", today)
 plos.xlab <- "Months"

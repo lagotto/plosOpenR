@@ -3,5 +3,7 @@
 .Rhistory
 .RData
 *.csv
-*/*.csv
+data-articles/*
+data-alm/*
+data-charts/*
 plosOpenR.Rproj
