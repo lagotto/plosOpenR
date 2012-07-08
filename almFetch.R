@@ -1,12 +1,14 @@
 # Fetch Article Level Metrics from PLoS
-# Version 1.2, 07/06/12
+# Version 1.3, 07/08/12
 # by Martin Fenner, mf@martinfenner.org
 
 # Load required libraries
 library(rplos)
 
+# Load PLoS API key from .rProfile file
+plos.api_key <- getOption("PlosApiKey")
+
 # Load required information
-plos.api_key <- c("K2HOqorgUIiuc7e")
 plos.journals <- list(pbio="PLoS Biology", 
                       pmed="PLoS Medicine",
                       pone="PLoS ONE",
@@ -28,8 +30,10 @@ for (doi in plos.dois) {
   response <- almplosallviews(doi, citations = TRUE, history = FALSE, downform='json', sleep=0, key = plos.api_key)
 
   # Parse journal name from DOI
-  journal.key <- substr(doi,17,20)
-  journal.name <- plos.journals[[journal.key]]
+  if (is.null(input.journal)) {
+    journal.key <- substr(doi,17,20)
+    journal.name <- plos.journals[[journal.key]]
+  }
       
   # Parse information about article, clean up article title when importing
   article.pmid <- if (is.null(response$article$pub_med)) NA else response$article$pub_med

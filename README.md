@@ -11,12 +11,13 @@ Analyzing the article level metrics for a set of PLoS articles involves three st
 ## Retrieve a set of articles through the PLoS Search API
 The **articlesSearch** script can query the PLoS Search API through a variety of criteria, including:
 
+* Title
 * Author
 * Editor
 * Affiliation
 * Funder (through the financial disclosure field)
 
-The results can be filtered by date, article type and subject category.
+The results can be filtered by date, article type and main subject category.
 
 ## Collect the metrics for these articles
 The **almSearch** script takes the output of the **articlesSearch** script as input, but can use any list of PLoS DOIs. The script generates a table of article level metrics for these DOIs and stores them in a CSV file.
@@ -24,7 +25,7 @@ The **almSearch** script takes the output of the **articlesSearch** script as in
 Retrieving the metrics for a large set of articles (> 250) can take a long time, and more than 1000 DOIs should probably not retrieved at a time. 
 
 ## Visualize the metrics
-Article Level Metrics are much easier to understand through a visualization. The following visualizations are available:
+Article level metrics are much easier to understand through visualizations. The following visualizations are available:
 
 * Word cloud
 * Bubble chart
