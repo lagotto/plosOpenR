@@ -31,9 +31,11 @@ for (doi in plos.dois) {
   journal.key <- substr(doi,17,20)
   journal.name <- plos.journals[[journal.key]]
       
-  # Parse information about article
+  # Parse information about article, clean up article title when importing
   article.pmid <- if (is.null(response$article$pub_med)) NA else response$article$pub_med
-  article.title <- response$article$title
+  article.title <- gsub("<italic>", "", response$article$title)
+  article.title <- gsub("</italic>", "", article.title)
+  #article.title <- gsub("\n", "", article.title, fixed=TRUE)
   article.published <- as.Date(response$article$published)
   article.age_in_days <- Sys.Date() - article.published
   article <- c(list(journal=journal.name), list(doi=doi), list(pmid=article.pmid), list(title=article.title), list(published=article.published), list(age_in_days=article.age_in_days))
