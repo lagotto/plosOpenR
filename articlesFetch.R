@@ -23,8 +23,8 @@ today <- format(Sys.Date(), "%Y-%m-%d")
 # <http://lucene.apache.org/core/3_6_0/queryparsersyntax.html>
 # Use doc_type:full (undocumented) to not return composite DOIs?
 plos.search_field <- c("title")
-plos.search_string <- c("dna barcoding")
-plos.start_date <- c("2011-07-07")
+plos.search_string <- c("DNA Barcoding")
+plos.start_date <- c("2011-08-18")
 plos.end_date <- today
 plos.article_type <- NA
 plos.subject_category <- NA
@@ -59,7 +59,7 @@ response.body[,3] <- substr(response.body[,3],1,10)
 
 if (plos.search_field == "author" ||
     plos.search_field == "affiliate") {
-    response.body[,5] <- lapply(response.body[,5], function(x) paste(x, collapse=", "))
+    response.body[,5] <- lapply(response.body[,5], function(x) paste(x, collapse=";"))
 } else if (plos.search_field == "financial_disclosure") {
   # Remove whitespace
   response.body[,5] <- gsub("\n", " ", response.body[,5], fixed=TRUE)

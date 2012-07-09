@@ -24,6 +24,8 @@ The **almSearch** script takes the output of the **articlesSearch** script as in
 
 Retrieving the metrics for a large set of articles (> 250) can take a long time, and more than 1000 DOIs should probably not retrieved at a time. 
 
+The **almEventSearch** script collects individual events (bookmarks, tweets, etc.) - great for a time series analysis. Only CiteULike and Twitter are currently supported through the API.
+
 ## Visualize the metrics
 Article level metrics are much easier to understand through visualizations. The following visualizations are available:
 
