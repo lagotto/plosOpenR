@@ -34,6 +34,8 @@ my.data.tmp$xml_views <- as.numeric(levels(my.data.tmp$xml_views))[my.data.tmp$x
 
 #sample plot (time stamp events log scale )
 
+ggsave("smooth_counter.png")
 ggplot(my.data.tmp, aes(as.Date(seq.date), html_views)) +
-  stat_smooth() + geom_point() + coord_trans(y="log10")
+  stat_smooth() + geom_point() + coord_trans(y="log10") + 
+  ylab("HTML Views (log10 scale)") + xlab("months") + opts(title=doi) 
 
