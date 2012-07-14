@@ -19,8 +19,8 @@ alm <- subset(alm, alm$source == plos.source, select=c("event_time","source"))
 # Convert data to zoo format and aggregate by date
 zoo <- read.zoo(alm, format = "%Y-%m-%d", aggregate=length)
 
-# Add all dates for given year to fill in missing values
-dates <- seq(as.Date(paste(plos.year, "01","01", sep="-")), as.Date(paste(plos.year, "12","31", sep="-")), by=1)
+# Add one empty date per month to display the whole year
+dates <- seq(as.Date(paste(plos.year, "01","01", sep="-")), as.Date(paste(plos.year, "12","01", sep="-")), by="months")
 empty <- zoo(,dates)
 zoo <- merge(zoo, empty, all=TRUE)
 
