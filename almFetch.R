@@ -1,30 +1,91 @@
 # Fetch Article Level Metrics from PLoS
-# Version 1.0, 07/04/12
+# Version 1.3, 07/08/12
 # by Martin Fenner, mf@martinfenner.org
-
-suppressPackageStartupMessages(library(googleVis))
 
 # Load required libraries
 library(rplos)
 
-plos.api_key <- c("K2HOqorgUIiuc7e")
-plos.sources <- c("crossref", "mendeley", "facebook")
-plos.dois <- c("10.1371/journal.pone.0018657", "10.1371/journal.pcbi.1000204", "10.1371/journal.pcbi.0010057", "10.1371/journal.pbio.1000242", "10.1371/journal.pmed.0020124")
-plos.journals <- list(pone="PLoS ONE", 
-                      pmed="PLoS Medicine",
-                      pbio="PLoS Biology",
-                      ppat="PLoS Pathogens")
+# Load PLoS API key from .rProfile file
+plos.api_key <- getOption("PlosApiKey")
+
+# Load CSV file with PLoS DOIs
+articles <- read.csv("alm_in.csv")
 
 my.data <- data.frame()
 
-for (doi in plos.dois) {
+# Loop through all provided DOIs
+for (i in 1:nrow(articles))  {
+  article <- articles[i,]
+  # Calling the PLoS ALM API. Waiting 10 sec before calling the API again.
+  response <- almplosallviews(article$doi, citations = TRUE, history = FALSE, downform='json', sleep=0, key = plos.api_key)
+
   # Parse journal name from DOI
-  journal.key = substr(doi,17,20)
-  
-  for (source in plos.sources) {
-    response <- almplosallviews(doi, source, citations = FALSE, history = FALSE, 'json', key = plos.api_key)
+  if (!is.null(article$journal)) {
+    journal.name <- article$journal
+  } else {
+    plos.journals <- list(pbio="PLoS Biology", 
+                          pmed="PLoS Medicine",
+                          pone="PLoS ONE",
+                          ppat="PLoS Pathogens",
+                          pcbi="PLoS Computational Biology",
+                          pntd="PLoS Neglected Tropical Diseases",
+                          pgen="PLoS Genetics",
+                          pctr="PLoS Clinical Trials")
     
-    data.tmp <- data.frame(response$article)
-    my.data <- rbind(my.data, data.tmp)
+    journal.key <- substr(article$doi,17,20)
+    journal.name <- plos.journals[[journal.key]]
+  } 
+  
+  # Parse information about article, clean up article title when importing
+  article.pmid <- if (is.null(response$article$pub_med)) NA else response$article$pub_med
+  article.title <- gsub("<italic>", "", response$article$title)
+  article.title <- gsub("</italic>", "", article.title)
+  #article.title <- gsub("\n", "", article.title, fixed=TRUE)
+  article.published <- as.Date(response$article$published)
+  article.age_in_days <- Sys.Date() - article.published
+  article <- c(list(journal=journal.name), list(doi=article$doi), list(pmid=article.pmid), list(title=article.title), list(published=article.published), list(age_in_days=article.age_in_days))
+  lst <- list()
+  
+  # Add citation_counts from sources. We will not use all sources, and need special parsing for some sources.
+  for (source in response$article$source) {
+    source.name <- tolower(source$source)
+    if (source.name == "citeulike" || 
+        source.name == "crossref" ||
+        source.name == "scopus" ||
+        source.name == "twitter") {
+      lst[source.name] <- source$count
+    } else if (source$source == "PubMed Central") {
+      lst["pubmed"] <- source$count
+    } else if (source.name == "counter") {
+      views <- source$citations[[1]]$citation$views
+      pdf_views <- sum(as.numeric(sapply(views, `[[`, "pdf_views")))
+      html_views <- sum(as.numeric(sapply(views, `[[`, "html_views")))
+      xml_views <- sum(as.numeric(sapply(views, `[[`, "xml_views")))
+      lst[source.name] <- pdf_views + html_views + xml_views
+    } else if (source$source== "PubMed Central Usage Stats") {
+      views <- source$citations[[1]]$citation$views
+      pdf <- sum(as.numeric(sapply(views, `[[`, "pdf")))
+      html <- sum(as.numeric(sapply(views, `[[`, "full-text")))
+      lst["pmc"] <- pdf + html
+    } else if (source.name == "facebook") {
+      doi_count <- source$citations[[1]]$citation$total_count
+      fulltext_count <- source$citations[[2]]$citation$total_count
+      citation <- unlist(source$citations, recursive=FALSE)
+      lst[source.name] <- doi_count + fulltext_count
+    } else if (source.name == "mendeley") {
+      citation <- source$citations[[1]]$citation
+      readers <- if(is.null(citation$stats)) 0 else citation$stats$readers
+      groups <- if(is.null(citation$groups)) 0 else length(citation$groups)
+      lst[source.name] <- readers + groups
+    } else {
+      next
+    }
   }
+  article <- c(article, lst)
+
+  data.tmp <- data.frame(article)
+  my.data <- rbind(my.data, data.tmp)
 }
+
+# Save result as CSV file
+write.csv(my.data, "alm_out.csv", row.names=FALSE)
