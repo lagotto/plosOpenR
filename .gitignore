@@ -6,4 +6,6 @@
 data-articles/*
 data-alm/*
 data-charts/*
+data/*
+plots/*
 plosOpenR.Rproj
