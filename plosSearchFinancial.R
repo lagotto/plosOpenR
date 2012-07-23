@@ -15,6 +15,7 @@
 #@params PLoS Api Key
 
 require(XML)
+require(RCurl)
 
 plosSearchFinancial <- function (date.range = NA, funder = NA, apiKey = NA, sleep = NA, 
                                  bool = NA, url = "http://api.plos.org/search") {
