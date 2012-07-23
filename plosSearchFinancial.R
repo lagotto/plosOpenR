@@ -16,7 +16,7 @@
 
 require(XML)
 
-plosSearchFinancial <- function (date.range = NA, funder = NA, apiKey = NA, limit = NA, 
+plosSearchFinancial <- function (date.range = NA, funder = NA, apiKey = NA, sleep = NA, 
                                  url = "http://api.plos.org/search") {
   #data.frame to be returned
   my.data <- data.frame()
@@ -46,7 +46,7 @@ plosSearchFinancial <- function (date.range = NA, funder = NA, apiKey = NA, limi
     .args$rows = 50
     .args$start = i
 
-    Sys.sleep(limit)
+    Sys.sleep(sleep)
     
     doc <- xmlTreeParse(getForm(url, .params = .args), useInternal=T)
     
