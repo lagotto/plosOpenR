@@ -45,6 +45,8 @@ plosSearchFinancial <- function (date.range = NA, funder = NA, apiKey = NA, limi
   for ( i in seq(0,getnumrecords, by = 50 )) {
     .args$rows = 50
     .args$start = i
+
+    Sys.sleep(limit)
     
     doc <- xmlTreeParse(getForm(url, .params = .args), useInternal=T)
     
