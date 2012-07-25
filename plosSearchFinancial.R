@@ -23,7 +23,7 @@ plosSearchFinancial <- function (date.range = NA, funder = NA, apiKey = NA, slee
   my.data <- data.frame()
   
   #date range from vector to be passed to function call
-  get.range <- paste("[",date.range[1],"T00:00:00Z TO ", date.range[2],"T23:59:59:99Z]",sep="")
+  #get.range <- paste("[",date.range[1],"T00:00:00Z TO ", date.range[2],"T23:59:59:99Z]",sep="")
   
   #boolean search
   bool <- paste(" ",bool," ", sep="")
@@ -31,7 +31,8 @@ plosSearchFinancial <- function (date.range = NA, funder = NA, apiKey = NA, slee
   
   #arguments for API call as list
   .args <- list()
-  if(!is.na(get.range)) {
+  if(!is.na(date.range)) {
+    get.range <- paste("[",date.range[1],"T00:00:00Z TO ", date.range[2],"T23:59:59:99Z]",sep="")
     .args$q  <- paste("financial_disclosure:(",funder,") AND ", get.range, sep="") 
   } else {
     .args$q <- paste("financial_disclosure:(", funder, ")", sep = "")
