@@ -1,11 +1,11 @@
 .DS_Store
+.Rproj
 .Rproj.user
 .Rhistory
 .RData
 *.csv
-data-articles/*
+data-search/*
 data-alm/*
 data-charts/*
-data/*
+reports/*
 plots/*
-plosOpenR.Rproj
