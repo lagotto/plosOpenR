@@ -54,7 +54,11 @@ almEventFetch <- function(articles, key=getOption("PlosApiKey")) {
   for (i in 1:nrow(articles))  {
     article <- articles[i,]
     # Calling the PLoS ALM API. Waiting 10 sec before calling the API again.
+<<<<<<< HEAD
     response <- almplosallviews(article$doi, events=1, downform='json', sleep=10, key = key)
+=======
+    response <- almplosallviews(article$doi, events=1, downform='json', sleep=0, key = key)
+>>>>>>> origin/master
     
     # Start with the DOI, needed for merging
     result <- list(doi=article$doi)
