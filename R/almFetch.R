@@ -50,7 +50,7 @@ almFetch <- function(articles, key=getOption("PlosApiKey")) {
   for (i in 1:nrow(articles))  {
     article <- articles[i,]
     # Calling the PLoS ALM API. Waiting 10 sec before calling the API again.
-    response <- almplosallviews(article$doi, events=1, downform='json', sleep=10, key = key)
+    response <- almplosallviews(article$doi, events=1, downform='json', sleep=0, key = key)
     
     # Start with the DOI, needed for merging
     result <- list(doi=article$doi)
@@ -68,6 +68,7 @@ almFetch <- function(articles, key=getOption("PlosApiKey")) {
     # Parse title from response unless we know it already
     if (is.null(article$title)) {
       article.title <- gsub("</?(italic|sub|sup)>", "", response$article$title)
+      article.title <- gsub("(“|”|\")", "'", article.title)
       article.title <- iconv(article.title, from = "latin1", to = "UTF-8")
       article.title <- gsub("\n", " ", article.title, fixed=TRUE)
       article.title <- gsub("                    ", "", article.title, fixed=TRUE)
