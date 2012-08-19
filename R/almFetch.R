@@ -68,6 +68,7 @@ almFetch <- function(articles, key=getOption("PlosApiKey")) {
     # Parse title from response unless we know it already
     if (is.null(article$title)) {
       article.title <- gsub("</?(italic|sub|sup)>", "", response$article$title)
+      article.title <- gsub("(“|”|\")", "'", article.title)
       article.title <- iconv(article.title, from = "latin1", to = "UTF-8")
       article.title <- gsub("\n", " ", article.title, fixed=TRUE)
       article.title <- gsub("                    ", "", article.title, fixed=TRUE)
