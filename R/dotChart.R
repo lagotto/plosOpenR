@@ -2,7 +2,7 @@
 #'
 #' @author Martin Fenner <mfenner@plos.org>
 
-dotchart <- function(x1, x2, x3, xlab, x3lab, labels, main, description, col="#789aa1") {
+dotchart <- function(x1, x2, labels, xlab=NULL, x3="", x3lab=NULL, main=NULL, description=NULL, col="#789aa1") {
 
   # Load required libraries
   library(Hmisc)
