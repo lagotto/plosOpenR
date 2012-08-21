@@ -1,78 +1,72 @@
-# Fetch all PLoS articles for a given search string
-# Version 1.0, 07/08/12
-# by Martin Fenner, mf@martinfenner.org
-#
-# The script searches for PLoS articles using the PLoS Search API and the
-# rplos <https://github.com/ropensci/rplos> library.
+#' Fetch all PLoS articles for a given search string
+#'
+#' The script searches for PLoS articles using the PLoS Search API and the
+#' rplos <https://github.com/ropensci/rplos> library.
+#' Please install rplos with Hadley's devtools package, the version on CRAN is outdated.
+#' 
+#' @author Martin Fenner <mfenner@plos.org>
+
+plossearch <- function(search_string, start_date="2003-08-18", end_date=format(Sys.Date(), "%Y-%m-%d"), limit=1000, key=getOption("PlosApiKey")) {
 
 # Load required libraries
 library(rplos)
+library(stringr)
 
-# Load PLoS API key from .rProfile file
-plos.api_key <- getOption("PlosApiKey")
-
-# Utility functions
-today <- format(Sys.Date(), "%Y-%m-%d")
-
-# Define query, possible plos.fields are listed at <http://api.plos.org/solr/search-fields/>
-# Examples: author, editor, affiliate, journal, financial_disclosure, article_type
+# Define query, possible fields to search in are listed at <http://api.plos.org/solr/search-fields/>, including
+# author
+# editor
+# affiliate
+# journal
+# financial_disclosure
+# article_type
+# abstract
+#
 # affiliate can be used to search for institutions
 # financial_disclosure is helpful to search for funding information
 # start_date and end_date should be in format yyyy-mm-dd
+# Using quotes around the search term in SOLR means AND, important for author names
 # The PLoS Search API uses Lucene syntax, more information at
 # <http://lucene.apache.org/core/3_6_0/queryparsersyntax.html>
-# Use doc_type:full (undocumented) to not return composite DOIs?
-plos.search_field <- c("title")
-plos.search_string <- c("DNA Barcoding")
-plos.start_date <- c("2011-08-18")
-plos.end_date <- today
+# Use doc_type:full (undocumented) to not return component DOIs
+
 plos.article_type <- NA
 plos.subject_category <- NA
 
 # Construct query and call the PLoS Search API
-plos.dates <- paste(" AND publication_date:[", plos.start_date, "T00:00:00Z", " TO ", plos.end_date, "T23:59:59.999Z]", sep="")
+plos.dates <- paste(" AND publication_date:[", start_date, "T00:00:00Z", " TO ", end_date, "T23:59:59.999Z]", sep="")
 plos.article_types <- if(is.na(plos.article_type)) "" else paste(" AND article_type:\"", plos.article_type, "\"", sep="")
 plos.subject_categories <- if(is.na(plos.subject_category)) "" else paste(" AND subject_level_1:\"", plos.subject_category, "\"", sep="")
-plos.query <- paste(plos.search_field, ":\"", plos.search_string, "\"", plos.dates, plos.article_types, " AND doc_type:full", sep="")
-if (plos.search_field == "journal" || plos.search_field == "article_type") {
-  plos.response_fields <- c("id","journal","publication_date","article_type")
-} else {
-  plos.response_fields <- c("id","journal","publication_date","article_type",plos.search_field)
+plos.query <- paste(plos.search_string, plos.dates, plos.article_types, plos.subject_categories, " AND doc_type:full", sep="")
+plos.search_field <- unique(gsub(":", "", unlist(str_extract_all(plos.search_string, "\\w+:"))))
+plos.response_fields <- c("id","journal","publication_date","article_type","title")
+if (any(plos.search_field == "financial_disclosure")) {
+  plos.response_fields <- c("score","id","journal","publication_date","article_type","title","financial_disclosure")
+} else if (any(plos.search_field == "abstract")) {
+  plos.response_fields <- c("id","journal","publication_date","article_type","title","abstract")
 }
-response <- searchplos(terms="*:*", fields=paste(plos.response_fields, collapse=','), toquery=plos.query, key = plos.api_key)
-response.number <- response[[1]]
-response.body <- response[[2]]
+response <- searchplos(terms="*:*", fields=plos.response_fields, toquery=plos.query, limit=limit, key=key)
 
 # Stop if no article was found
-stopifnot (response.number > 0)
+stopifnot (nrow(response) > 0)
 
-# Get response into the right format
-dim(response.body) <- c(length(plos.response_fields),response.number)
-response.body <- t(response.body)
+# Put all authors into one row
+author <- paste(response$author, collapse = ", ")
+response <- response[1,]
+response$author <- author
 
-# Rename first column
-plos.response_fields[1] <- "doi"
-colnames(response.body) <- plos.response_fields
+# Rename id column
+names(response)[names(response)=="id"] <- "doi"
 
 # Strip time information from publication_date
-response.body[,3] <- substr(response.body[,3],1,10)
+response$publication_date <- as.Date(response$publication_date)
 
-if (plos.search_field == "author" ||
-    plos.search_field == "affiliate") {
-    response.body[,5] <- lapply(response.body[,5], function(x) paste(x, collapse=";"))
-} else if (plos.search_field == "financial_disclosure") {
-  # Remove whitespace
-  response.body[,5] <- gsub("\n", " ", response.body[,5], fixed=TRUE)
-  response.body[,5] <- gsub("^\\s+|\\s+$", "", response.body[,5])
+# Remove whitespace from financial_disclosure
+if ("financial_disclosure" %in% colnames(response)) {
+
+  response$financial_disclosure <- gsub("\n", " ", response$financial_disclosure, fixed=TRUE)
+  response$financial_disclosure <- gsub("^\\s+|\\s+$", "", response$financial_disclosure)
+  response$financial_disclosure <- gsub("                     ", " ", response$financial_disclosure, fixed=TRUE)
+  response$financial_disclosure <- gsub("     ", " ", response$financial_disclosure, fixed=TRUE)
 }
-
-# Save result as CSV file, using the query and today's date for the filename
-# Results are saved in the "data-articles" subdirectory
-plos.search_string <- gsub(" ", "_", tolower(plos.search_string))
-plos.search_string <- gsub(".", "", plos.search_string, fixed=TRUE)
-plos.data_articles <- "data-articles"
-plos.csv <- paste(plos.data_articles, "/", plos.search_field, "_", plos.search_string, "_", today, ".csv", sep="")
-write.csv(response.body, plos.csv, row.names=FALSE)
-
-# Also write temporary CSV file that can be used by almFetch script
-write.csv(response.body, "alm_in.csv", row.names=FALSE)
+response
+}
