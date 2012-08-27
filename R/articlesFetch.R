@@ -11,7 +11,6 @@ articlesFetch <- function(search_string=NULL, start_date="2003-08-18", end_date=
   # Load required libraries and functions
   library(rplos)
   library(stringr)
-  library(plyr)
   source("R/cleanText.R",chdir=TRUE)
 
   # Define query, possible fields to search in are listed at <http://api.plos.org/solr/search-fields/>, including
@@ -55,8 +54,14 @@ articlesFetch <- function(search_string=NULL, start_date="2003-08-18", end_date=
   # Format publication_date
   response$publication_date <- as.Date(response$publication_date)
   
-  # Clean title
-  #response$title <- aaply(response$title, 1, cleanText)
-
+  # Clean text in text fields
+  response$title <- cleanText(response$title)
+  if (!is.null(response$financial_disclosure)) {
+    response$financial_disclosure <- cleanText(response$financial_disclosure)
+  }
+  if (!is.null(response$abstract)) {
+    response$abstract <- cleanText(response$abstract)
+  }
+  
   response
 }
