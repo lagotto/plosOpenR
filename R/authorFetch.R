@@ -1,4 +1,4 @@
-#' Fetch all PLoS articles for a given search string
+#' Return author information for a list of DOIs
 #'
 #' The script searches for PLoS articles using the PLoS Search API and the
 #' rplos <https://github.com/ropensci/rplos> library.
@@ -6,8 +6,10 @@
 #' 
 #' @author Martin Fenner <mfenner@plos.org>
 
-doiFetch <- function(articles, fields=c("id","journal","publication_date","article_type","title","author"), key=getOption("PlosApiKey")) {
-
+authorFetch <- function(articles, limit=1000, sleep = 0, all=TRUE, key=getOption("PlosApiKey")) {
+  
+  stopifnot (nrow(articles) <= limit)
+  
   # Make sure articles is a dataframe with a "doi" column
   if(class(articles) == "character") {
     articles <- as.data.frame(articles)
@@ -20,38 +22,31 @@ doiFetch <- function(articles, fields=c("id","journal","publication_date","artic
   names(articles)[names(articles)=="DOI"] <- "doi"
   stopifnot (!is.null(articles$doi))
   
+  # Remove duplicate DOIs
+  articles <- unique(articles)
+  
   # Load required libraries
   library(rplos)
   library(stringr)
+  
+  # Fields to return
+  fields <- c("id","author")
   
   results <- data.frame()
   
   # Loop through all provided DOIs
   for (i in 1:nrow(articles))  {
+    Sys.sleep(sleep)
     article <- articles[i,]
     doi <- if(ncol(articles) > 1 ) article$doi else article
     # Calling the PLoS ALM API. Waiting 10 sec before calling the API again
     response <- searchplos(terms="*:*", fields=fields, toquery=paste("id:",doi,sep=""), key=key)
     
-    # Put all authors into one row
-    author <- paste(response$author, collapse = ", ")
-    response <- response[1,]
-    response$author <- author
-    
     # Next if no article was found
-    if (!nrow(response) > 0) next
+    stopifnot (nrow(response) > 0)
     
     # Rename id column
     names(response)[names(response)=="id"] <- "doi"
-    
-    # Clean up title
-    article.title <- gsub("</?(italic|sub|sup)>", "", response$title)
-    article.title <- gsub("(“|”|\")", "'", article.title)
-    article.title <- iconv(article.title, from = "latin1", to = "UTF-8")
-    article.title <- gsub("\n", " ", article.title, fixed=TRUE)
-    article.title <- gsub("                    ", "", article.title, fixed=TRUE)
-    article.title <- str_trim(article.title)
-    response$title <- article.title
     
     results <- rbind(results, response)
   }
