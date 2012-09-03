@@ -6,7 +6,7 @@
 #' 
 #' @author Martin Fenner <mfenner@plos.org>
 
-affiliateFetch <- function(articles, limit=1000, sleep = 0, key=getOption("PlosApiKey")) {
+affiliateFetch <- function(articles, authors="all", limit=1000, sleep = 0, key=getOption("PlosApiKey")) {
 
   stopifnot (nrow(articles) <= limit)
   
@@ -47,6 +47,13 @@ affiliateFetch <- function(articles, limit=1000, sleep = 0, key=getOption("PlosA
     
     # Rename id column
     names(response)[names(response)=="id"] <- "doi"
+    
+    # Only return affiliation of first, last or all other others
+    if (authors == "first") response <- response[1,]
+    if (authors == "last") response <- response[nrow(response),]
+    if (authors == "other") {
+      response <- if (nrow(response) > 2) response[2:nrow(response)-1,] else next
+    }
     
     results <- rbind(results, response)
   }
