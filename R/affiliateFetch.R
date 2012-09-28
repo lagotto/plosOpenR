@@ -7,7 +7,7 @@
 #' @author Martin Fenner <mfenner@plos.org>
 
 affiliateFetch <- function(articles, authors="all", limit=1000, sleep = 0, key=getOption("PlosApiKey")) {
-
+  
   stopifnot (nrow(articles) <= limit)
   
   # Make sure articles is a dataframe with a "doi" column
@@ -35,7 +35,7 @@ affiliateFetch <- function(articles, authors="all", limit=1000, sleep = 0, key=g
   results <- data.frame()
   
   # Loop through all provided DOIs
-  for (i in 1:nrow(articles))  {
+  for (i in 1:nrow(articles)) {
     Sys.sleep(sleep)
     article <- articles[i,]
     doi <- if(ncol(articles) > 1 ) article$doi else article
@@ -49,11 +49,11 @@ affiliateFetch <- function(articles, authors="all", limit=1000, sleep = 0, key=g
     names(response)[names(response)=="id"] <- "doi"
     
     # Only return affiliation of first, last or all other others
-    if (authors == "first") response <- response[1,]
-    if (authors == "last") response <- response[nrow(response),]
-    if (authors == "other") {
-      response <- if (nrow(response) > 2) response[2:nrow(response)-1,] else next
-    }
+    if (authors == "first") {
+      response <- response[1,]
+    } else if (authors == "last") {
+      response <- response[nrow(response),]
+    } else if (authors == "other") { response <- if (nrow(response) > 2) response[2:nrow(response)-1,] else next }
     
     results <- rbind(results, response)
   }
