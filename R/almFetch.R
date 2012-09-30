@@ -31,7 +31,8 @@ almFetch <- function(articles, key=getOption("PlosApiKey")) {
   # Parse journal name from DOI unless we know the name already
   if (is.null(articles$journal)) {
     getJournal <- function(doi) {
-      plos.journals <- c(pbio="PLoS Biology", 
+      if (length(doi) > 19) {
+        plos.journals <- c(pbio="PLoS Biology", 
                             pmed="PLoS Medicine",
                             pone="PLoS ONE",
                             ppat="PLoS Pathogens",
@@ -39,7 +40,10 @@ almFetch <- function(articles, key=getOption("PlosApiKey")) {
                             pntd="PLoS Neglected Tropical Diseases",
                             pgen="PLoS Genetics",
                             pctr="PLoS Clinical Trials")
-      plos.journals[[substr(doi,17,20)]]
+        plos.journals[[substr(doi,17,20)]]
+      } else {
+        NA
+      }
     }
     articles$journal <- daply(articles, "doi", getJournal)
   }
@@ -51,6 +55,8 @@ almFetch <- function(articles, key=getOption("PlosApiKey")) {
     article <- articles[i,]
     # Calling the PLoS ALM API. Waiting 10 sec before calling the API again.
     response <- almplosallviews(article$doi, events=1, downform='json', sleep=0, key = key)
+    
+    if (is.na(response)) next
     
     # Start with the DOI, needed for merging
     result <- list(doi=article$doi)
@@ -134,5 +140,9 @@ almFetch <- function(articles, key=getOption("PlosApiKey")) {
   }
   
   # Merge with input dataframe and return the result
-  alm <- merge(articles, alm, by="doi", all.x=TRUE)
+  if (length(alm) > 0) {
+    alm <- merge(articles, alm, by="doi", all.x=TRUE)
+  } else {
+    articles
+  }
 }
